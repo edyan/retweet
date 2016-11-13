@@ -20,6 +20,7 @@
 import datetime
 import os.path
 import sys
+import re
 
 # external library imports
 import tweepy
@@ -47,7 +48,7 @@ class Validate(object):
             # test if it was retweeted enough to be retweeted by me
             if len(self.api.retweets(self.tweet)) >= self.cfgvalues['retweets']:
                 # send the tweet if all checks are ok
-                if not self.notretweethashes() and self.retweetonlyifhashtags() and self.retweetonlyifolderthan() and self.retweetonlyifoyoungerthan():
+                if not self.notretweethashes() and self.retweetonlyifhashtags() and self.retweetonlyifolderthan() and self.retweetonlyifoyoungerthan() and self.retweetonlyifmatchingregex():
                     self.storeit = True
                     if self.args.dryrun:
                         print("tweet {} sent!".format(self.tweet))
@@ -126,3 +127,11 @@ class Validate(object):
         else:
             send = True
         return send
+        
+    def retweetonlyifmatchingregex(self):
+        '''retweet only if the tweet contains given regex'''
+        match = None
+        if self.cfgvalues['match_regex']:            
+            match = re.search(self.cfgvalues['match_regex'], self.api.get_status(self.tweet).text)            
+        
+        return True if match else False

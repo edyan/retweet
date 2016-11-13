@@ -42,6 +42,7 @@ class TestRetweet(unittest.TestCase):
                                             'sqlitepath': '/var/lib/retweet/retweet.db',
                                             'dontretweethashes': ['dnr'],
                                             'onlyifhashtags': ['python'],
+                                            'match_regex': '[Rr]egex',
                                             'youngerthan': 180,
                                             'olderthan': 60,
                                             'like': False
@@ -59,6 +60,7 @@ class TestRetweet(unittest.TestCase):
                                             'waitmaxsecs': 3,
                                             'sqlitepath': '/var/lib/retweet/retweet.db',
                                             'dontretweethashes': [],
+                                            'match_regex': '',
                                             'youngerthan': 0,
                                             'olderthan': 0,
                                             'onlyifhashtags': [],

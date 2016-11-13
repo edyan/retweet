@@ -19,6 +19,7 @@
 # standard library imports
 import configparser
 import sys
+import re
 
 class ConfParse(object):
     '''ConfParse class'''
@@ -35,6 +36,7 @@ class ConfParse(object):
         self.pathtoconf = pathtoconf
         self.dontretweethashes = []
         self.onlyiftags = []
+        self.match_regex = ''
         self.olderthan = 0
         self.youngerthan = 0
         self.like = False
@@ -77,6 +79,13 @@ class ConfParse(object):
                         if onlyiftags:
                             hashtags = [i for i in onlyiftags.split(',') if i != '']
                             self.onlyiftags = hashtags
+                    # match option
+                    if config.has_option(section, 'match'):
+                        regex = config.get(section, 'match')
+                        if regex:
+                            self.match_regex = regex
+                            # throws exception if the regex is not valid
+                            re.compile(regex)
                     # older_than option
                     if config.has_option(section, 'older_than'):
                         self.olderthan = config.get(section, 'older_than')
@@ -136,6 +145,7 @@ class ConfParse(object):
                 'sqlitepath': self.sqlitepath,
                 'dontretweethashes': self.dontretweethashes,
                 'onlyifhashtags': self.onlyiftags,
+                'match_regex': self.match_regex,
                 'olderthan': self.olderthan,
                 'youngerthan': self.youngerthan,
                 'like': self.like}
