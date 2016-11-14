@@ -130,7 +130,7 @@ class Validate(object):
         
     def retweetonlyifmatchingregex(self):
         '''retweet only if the tweet contains given regex'''
-        match = None
+        match = True
         if self.cfgvalues['match_regex']:            
             match = re.search(self.cfgvalues['match_regex'], self.tweet.text)            
         
