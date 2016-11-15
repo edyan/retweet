@@ -20,6 +20,7 @@
 import datetime
 import os.path
 import sys
+import re
 
 # external library imports
 import tweepy
@@ -45,17 +46,17 @@ class Validate(object):
         '''Main of the Validate class'''
         try:
             # test if it was retweeted enough to be retweeted by me
-            if len(self.api.retweets(self.tweet)) >= self.cfgvalues['retweets']:
+            if self.tweet.retweet_count >= self.cfgvalues['retweets']:
                 # send the tweet if all checks are ok
-                if not self.notretweethashes() and self.retweetonlyifhashtags() and self.retweetonlyifolderthan() and self.retweetonlyifoyoungerthan():
+                if not self.notretweethashes() and self.retweetonlyifhashtags() and self.retweetonlyifolderthan() and self.retweetonlyifoyoungerthan() and self.retweetonlyifmatchingregex():
                     self.storeit = True
                     if self.args.dryrun:
-                        print("tweet {} sent!".format(self.tweet))
+                        print("tweet {} sent!".format(self.tweet.id))
                     else:
                         # at last retweet the tweet
-                        self.api.retweet(self.tweet)
+                        self.api.retweet(self.tweet.id)
                         if self.cfgvalues['like']:
-                            self.api.create_favorite(self.tweet)
+                            self.api.create_favorite(self.tweet.id)
                 else:
                     self.storeit = False
         except (tweepy.error.TweepError) as err:
@@ -63,9 +64,9 @@ class Validate(object):
             print("the tweet is probably retweeted already. Twitter does not allow to retweet 2 times")
         finally:
             # now store the tweet
-            if not self.twp.wasposted(self.tweet) and self.storeit:
+            if not self.twp.wasposted(self.tweet.id) and self.storeit:
                 if not self.args.dryrun:
-                    self.twp.storetweet(self.tweet)
+                    self.twp.storetweet(self.tweet.id)
                 WaitAMoment(self.cfgvalues['waitminsecs'], self.cfgvalues['waitmaxsecs'])
 
     def notretweethashes(self):
@@ -73,7 +74,7 @@ class Validate(object):
         found = False
         # check if the current tweet contains a do-not-retweet hash
         for i in self.cfgvalues['dontretweethashes']:
-            if '#{}'.format(i) in self.api.get_status(self.tweet).text:
+            if '#{}'.format(i) in self.tweet.text:
                 found = True
         return found
 
@@ -83,7 +84,7 @@ class Validate(object):
         if self.cfgvalues['onlyifhashtags']:
             # check if the current tweet contains one of the hashtags to be retweeted
             for i in self.cfgvalues['onlyifhashtags']:
-                if '#{}'.format(i) in self.api.get_status(self.tweet).text:
+                if '#{}'.format(i) in self.tweet.text:
                     found = True
         else:
             found = True
@@ -95,7 +96,7 @@ class Validate(object):
         if self.cfgvalues['olderthan']:
             # check if the tweet is older than a number of minutes
             now = datetime.datetime.utcnow()
-            tweetbirth = self.api.get_status(self.tweet).created_at
+            tweetbirth = self.tweet.created_at
             lapse = now - tweetbirth
             try:
                 if (lapse.seconds / 60) > self.cfgvalues['olderthan']:
@@ -114,7 +115,7 @@ class Validate(object):
         if self.cfgvalues['youngerthan']:
             # check if the tweet is younger than a number of minutes
             now = datetime.datetime.utcnow()
-            tweetbirth = self.api.get_status(self.tweet).created_at
+            tweetbirth = self.tweet.created_at
             lapse = now - tweetbirth
             try:
                 if (lapse.seconds / 60) < self.cfgvalues['youngerthan']:
@@ -126,3 +127,11 @@ class Validate(object):
         else:
             send = True
         return send
+        
+    def retweetonlyifmatchingregex(self):
+        '''retweet only if the tweet contains given regex'''
+        match = True
+        if self.cfgvalues['match_regex']:            
+            match = re.search(self.cfgvalues['match_regex'], self.tweet.text)            
+        
+        return True if match else False

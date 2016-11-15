@@ -56,16 +56,12 @@ class Main(object):
     def main(self):
         '''Main of the Main class'''
         lasttweets = self.api.user_timeline(self.cfgvalues['user_to_retweet'])
-        # see if the last tweet of twitter api was sent already
-        lasttweetid = lasttweets[-1].id
-        # extract the last 20 tweet ids
-        lasttweetids = [tweet.id for tweet in lasttweets]
-        lasttweetids.reverse()
+        lasttweets.reverse()
         if self.args.limit:
-            lasttweetids = lasttweetids[(len(lasttweetids) - self.args.limit) :]
+            lasttweets = lasttweets[(len(lasttweets) - self.args.limit) :]
         tweetstosend = []
         # test if the last 20 tweets were posted
-        for lasttweet in lasttweetids:
-            if not self.twp.wasposted(lasttweet):
+        for lasttweet in lasttweets:
+            if not self.twp.wasposted(lasttweet.id):
                 Validate(self.cfgvalues, self.args, self.api, lasttweet)
         sys.exit(0)

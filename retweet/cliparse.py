@@ -43,7 +43,7 @@ class CliParse(object):
                             help='Do not actually feed database and do not send the tweets')
         parser.add_argument('-v', '--version',
                             action='version',
-                            version='%(prog)s 0.9',
+                            version='%(prog)s 0.10',
                             help='print the version of retweet and exit')
         args = parser.parse_args()
         if not os.path.exists(args.pathtoconf):
