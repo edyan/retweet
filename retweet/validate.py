@@ -18,8 +18,7 @@
 
 # standard library imports
 import datetime
-import os.path
-import sys
+import textwrap
 import re
 
 # external library imports
@@ -51,7 +50,7 @@ class Validate(object):
                 if not self.notretweethashes() and self.retweetonlyifhashtags() and self.retweetonlyifolderthan() and self.retweetonlyifoyoungerthan() and self.retweetonlyifmatchingregex():
                     self.storeit = True
                     if self.args.dryrun:
-                        print("tweet {} sent!".format(self.tweet.id))
+                        print('Tweet "{}" (date: {}) sent!'.format(textwrap.shorten(self.tweet.text, width=60, placeholder="..."), self.tweet.created_at))
                     else:
                         # at last retweet the tweet
                         self.api.retweet(self.tweet.id)
@@ -99,7 +98,7 @@ class Validate(object):
             tweetbirth = self.tweet.created_at
             lapse = now - tweetbirth
             try:
-                if (lapse.seconds / 60) > self.cfgvalues['olderthan']:
+                if (lapse.total_seconds() / 60) > self.cfgvalues['olderthan']:
                     send = True
                 else:
                     send = False
@@ -118,7 +117,7 @@ class Validate(object):
             tweetbirth = self.tweet.created_at
             lapse = now - tweetbirth
             try:
-                if (lapse.seconds / 60) < self.cfgvalues['youngerthan']:
+                if (lapse.total_seconds() / 60) < self.cfgvalues['youngerthan']:
                     send = True
                 else:
                     send = False
@@ -127,11 +126,11 @@ class Validate(object):
         else:
             send = True
         return send
-        
+
     def retweetonlyifmatchingregex(self):
         '''retweet only if the tweet contains given regex'''
         match = True
-        if self.cfgvalues['match_regex']:            
-            match = re.search(self.cfgvalues['match_regex'], self.tweet.text)            
-        
+        if self.cfgvalues['match_regex']:
+            match = re.search(self.cfgvalues['match_regex'], self.tweet.text)
+
         return True if match else False
